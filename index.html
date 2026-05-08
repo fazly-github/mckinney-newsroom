@@ -21,6 +21,9 @@ textarea { resize: vertical; min-height: 90px; }
 .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 .btn { display: inline-flex; align-items: center; gap: 8px; background: #1a3a5c; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 20px; }
 .btn:hover { background: #2d5a8e; }
+.btn-search { background: #38a169; }
+.btn-search:hover { background: #2f855a; }
+.btn-search:disabled, .btn:disabled { background: #a0aec0; cursor: not-allowed; }
 #status-section { display: none; }
 .steps { display: flex; gap: 8px; margin-bottom: 24px; }
 .step { padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; background: #e8edf2; color: #718096; }
@@ -35,253 +38,321 @@ textarea { resize: vertical; min-height: 90px; }
 .result-block.expanded .result-content { display: block; }
 .copy-btn { background: none; border: 1.5px solid #cbd5e0; border-radius: 6px; padding: 4px 12px; font-size: 0.78rem; color: #4a5568; cursor: pointer; font-weight: 600; }
 .copy-btn:hover { background: #edf2f7; }
-.tag { display: inline-block; background: #ebf8ff; color: #2b6cb0; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 6px; }
+/* News search panel */
+.news-panel { display: none; margin-top: 20px; border: 1.5px solid #bee3f8; border-radius: 10px; overflow: hidden; }
+.news-panel.visible { display: block; }
+.news-panel-header { background: #ebf8ff; padding: 12px 16px; font-weight: 700; font-size: 0.9rem; color: #2b6cb0; border-bottom: 1px solid #bee3f8; }
+.news-loading { padding: 20px; text-align: center; color: #718096; font-size: 0.9rem; }
+.news-item { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; cursor: pointer; transition: background 0.15s; }
+.news-item:last-child { border-bottom: none; }
+.news-item:hover { background: #ebf8ff; }
+.news-item-title { font-weight: 600; font-size: 0.9rem; color: #2d3748; margin-bottom: 4px; }
+.news-item-meta { font-size: 0.78rem; color: #718096; }
+.news-item-desc { font-size: 0.82rem; color: #4a5568; margin-top: 4px; line-height: 1.4; }
+.use-story-hint { font-size: 0.75rem; color: #38a169; font-weight: 600; margin-top: 4px; }
 </style>
 </head>
 <body>
 <header>
   <h1>McKinney Now AI Newsroom</h1>
-  <p>Turn your story tips into polished, multi-format content instantly</p>
+  <p>Find real McKinney news &amp; generate multi-format content in seconds</p>
 </header>
+
 <div class="container">
-  <div class="card" id="form-section">
-    <h2>Step 1 - Enter Your Story Tip</h2>
+
+  <!-- Step 1: Input -->
+  <div class="card" id="input-card">
+    <h2>Step 1 — Story Input</h2>
+
+    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+      <button class="btn btn-search" id="find-news-btn" onclick="findMcKinneyNews()">
+        🔍 Find McKinney News
+      </button>
+      <span style="font-size:0.82rem;color:#718096;">Click to load real recent stories from McKinney, TX</span>
+    </div>
+
+    <!-- News results panel -->
+    <div class="news-panel" id="news-panel">
+      <div class="news-panel-header">📰 Recent McKinney News — Click a story to use it</div>
+      <div id="news-list"><div class="news-loading">Loading...</div></div>
+    </div>
+
     <label for="story-tip">Story Tip *</label>
-    <textarea id="story-tip" placeholder="Describe the story - who, what, where, when..."></textarea>
+    <textarea id="story-tip" placeholder="Paste a news tip, press release, or story idea here..."></textarea>
+
     <label for="extra-details">Extra Details (optional)</label>
-    <textarea id="extra-details" placeholder="Address, hours, links, quotes, contact info..."></textarea>
+    <textarea id="extra-details" placeholder="Address, hours, quotes, social handles, etc."></textarea>
+
     <div class="row">
       <div>
         <label for="category">Category</label>
         <select id="category">
-          <option value="New opening">New opening</option>
-          <option value="Local event">Local event</option>
-          <option value="Community news">Community news</option>
-          <option value="Business update">Business update</option>
-          <option value="Government and policy">Government and policy</option>
-          <option value="Arts and culture">Arts and culture</option>
-          <option value="Sports">Sports</option>
-          <option value="Development and real estate">Development and real estate</option>
-          <option value="Crime and safety">Crime and safety</option>
-          <option value="Education">Education</option>
-          <option value="Human interest">Human interest</option>
+          <option>New opening</option>
+          <option>Local event</option>
+          <option>Crime &amp; safety</option>
+          <option>City government</option>
+          <option>Development / real estate</option>
+          <option>Schools &amp; education</option>
+          <option>Sports</option>
+          <option>Community &amp; people</option>
+          <option>Business news</option>
+          <option>Other</option>
         </select>
       </div>
       <div>
         <label for="tone">Tone</label>
         <select id="tone">
-          <option value="Friendly and conversational">Friendly and conversational</option>
-          <option value="Professional and neutral">Professional and neutral</option>
-          <option value="Upbeat and exciting">Upbeat and exciting</option>
-          <option value="Serious and informative">Serious and informative</option>
+          <option>Friendly &amp; conversational</option>
+          <option>Professional &amp; neutral</option>
+          <option>Energetic &amp; exciting</option>
+          <option>Serious &amp; informative</option>
         </select>
       </div>
       <div>
         <label for="location">Location</label>
         <select id="location">
-          <option value="McKinney, TX">McKinney, TX</option>
-          <option value="Frisco, TX">Frisco, TX</option>
-          <option value="Allen, TX">Allen, TX</option>
-          <option value="Plano, TX">Plano, TX</option>
-          <option value="Collin County, TX">Collin County, TX</option>
+          <option>McKinney, TX</option>
+          <option>Downtown McKinney</option>
+          <option>Prosper, TX</option>
+          <option>Frisco, TX</option>
+          <option>Allen, TX</option>
+          <option>Collin County</option>
         </select>
       </div>
     </div>
-    <button class="btn" id="generate-btn" onclick="generateContent()">Research and generate</button>
+
+    <button class="btn" onclick="generateContent()">✨ Research &amp; generate</button>
   </div>
 
-  <div class="card" id="status-section">
-    <h2>Generating Your Content</h2>
+  <!-- Step 2+: Status -->
+  <div id="status-section">
     <div class="steps">
-      <div class="step active" id="step-research">Research</div>
-      <div class="step" id="step-write">Writing</div>
-      <div class="step" id="step-format">Formatting</div>
+      <div class="step" id="step1">1 Input</div>
+      <div class="step" id="step2">2 Research</div>
+      <div class="step" id="step3">3 Generate</div>
+      <div class="step" id="step4">4 Done</div>
     </div>
-    <div id="error-container"></div>
-    <p id="status-msg" style="color:#4a5568;font-size:0.93rem;">Connecting to AI...</p>
+    <div id="error-box" class="error-box" style="display:none;"></div>
+    <div id="loading-msg" style="text-align:center;color:#718096;padding:20px 0;font-size:0.95rem;"></div>
   </div>
 
+  <!-- Results -->
   <div id="results-section">
     <div class="card">
       <h2>Generated Content</h2>
-      <p id="results-story-title" style="color:#4a5568;font-size:0.9rem;margin-bottom:16px;"></p>
-      <div id="results-blocks"></div>
-      <button class="btn" onclick="resetForm()" style="background:#38a169;margin-top:8px;">New Story</button>
+      <div id="results-container"></div>
     </div>
   </div>
+
 </div>
 
 <script>
-function generateContent() {
-  var tip = document.getElementById('story-tip').value.trim();
-  if (!tip) { alert('Please enter a story tip.'); return; }
-  var extra = document.getElementById('extra-details').value.trim();
-  var category = document.getElementById('category').value;
-  var tone = document.getElementById('tone').value;
-  var location = document.getElementById('location').value;
+// ---- News search ----
+async function findMcKinneyNews() {
+  const btn = document.getElementById('find-news-btn');
+  const panel = document.getElementById('news-panel');
+  const list = document.getElementById('news-list');
 
-  document.getElementById('form-section').style.display = 'none';
-  document.getElementById('status-section').style.display = 'block';
-  document.getElementById('results-section').style.display = 'none';
-  document.getElementById('error-container').innerHTML = '';
-  setStep('research');
-  setStatus('Researching your story tip...');
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading news...';
+  panel.classList.add('visible');
+  list.innerHTML = '<div class="news-loading">Fetching recent McKinney news...</div>';
 
-  var prompt = 'You are a local news journalist for McKinney Now, a digital news outlet covering ' + location + '.\n\n'
-    + 'STORY TIP: ' + tip + '\n'
-    + (extra ? 'EXTRA DETAILS: ' + extra + '\n' : '')
-    + 'CATEGORY: ' + category + '\n'
-    + 'TONE: ' + tone + '\n\n'
-    + 'Generate all 5 content formats with these exact section headers:\n\n'
-    + '## FACEBOOK POST\n'
-    + 'A 2-4 sentence Facebook post. Conversational, engaging, ends with a call to action. 2-3 hashtags.\n\n'
-    + '## REEL SCRIPT\n'
-    + '30-45 second reel script with [HOOK], [MAIN CONTENT], and [CTA] labeled sections.\n\n'
-    + '## INSTAGRAM CAPTION\n'
-    + 'Strong opening line, key details, 5-8 hashtags at end.\n\n'
-    + '## NEWSLETTER BLURB\n'
-    + '3-4 sentences. Professional but friendly. For email newsletter.\n\n'
-    + '## WEBSITE ARTICLE\n'
-    + 'Full article with headline, byline (By McKinney Now Staff), and 3-4 paragraphs. Journalistic inverted pyramid style for ' + location + '.';
+  try {
+    const res = await fetch('/.netlify/functions/search');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
 
-  setTimeout(function() { setStep('write'); setStatus('AI is writing your content...'); }, 1000);
+    if (!data.stories || data.stories.length === 0) {
+      list.innerHTML = '<div class="news-loading">No stories found. Try entering your own tip below.</div>';
+      return;
+    }
 
-  fetch('/api/claude', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-opus-4-5',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  })
-  .then(function(response) {
-    return response.json().then(function(data) {
-      if (!response.ok || data.error) {
-        var msg = (data.error && data.error.message) ? data.error.message : (data.error || ('API error ' + response.status));
-        throw new Error(msg);
-      }
-      return data;
+    list.innerHTML = '';
+    data.stories.forEach((story, i) => {
+      const div = document.createElement('div');
+      div.className = 'news-item';
+      div.innerHTML = `
+        <div class="news-item-title">${escHtml(story.title)}</div>
+        <div class="news-item-meta">${escHtml(story.source || '')} ${story.pubDate ? '· ' + formatDate(story.pubDate) : ''}</div>
+        ${story.description ? '<div class="news-item-desc">' + escHtml(story.description.substring(0, 200)) + '</div>' : ''}
+        <div class="use-story-hint">👆 Click to use this story</div>
+      `;
+      div.onclick = () => useStory(story);
+      list.appendChild(div);
     });
-  })
-  .then(function(data) {
-    setStep('format');
-    setStatus('Formatting results...');
-    var text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
-    // Strip markdown code block wrapper if present
-    text = text.replace(/^```[\w]*\n?/m, '').replace(/\n?```$/m, '').trim();
-    if (!text) throw new Error('No content returned from AI.');
-    setTimeout(function() { displayResults(text, tip); }, 400);
-  })
-  .catch(function(err) {
-    showError(err.message);
+  } catch (err) {
+    list.innerHTML = '<div class="news-loading" style="color:#c53030;">Error loading news: ' + escHtml(err.message) + '. Try entering a tip manually.</div>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔍 Find McKinney News';
+  }
+}
+
+function useStory(story) {
+  document.getElementById('story-tip').value = story.title + (story.description ? '\n\n' + story.description : '');
+  document.getElementById('extra-details').value = story.link ? 'Source: ' + story.link : '';
+  // Scroll to the textarea
+  document.getElementById('story-tip').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('story-tip').focus();
+  // Highlight the selected item
+  document.querySelectorAll('.news-item').forEach(el => el.style.background = '');
+  event.currentTarget.style.background = '#c6f6d5';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(str) {
+  try { return new Date(str).toLocaleDateString('en-US', {month:'short', day:'numeric'}); } catch(e) { return ''; }
+}
+
+// ---- Content generation ----
+function setStep(n) {
+  ['step1','step2','step3','step4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (i + 1 < n) el.className = 'step done';
+    else if (i + 1 === n) el.className = 'step active';
+    else el.className = 'step';
   });
 }
 
-function setStep(step) {
-  var steps = ['research', 'write', 'format'];
-  for (var i = 0; i < steps.length; i++) {
-    var el = document.getElementById('step-' + steps[i]);
-    var cur = steps.indexOf(step);
-    if (i < cur) el.className = 'step done';
-    else if (i === cur) el.className = 'step active';
-    else el.className = 'step';
-  }
-}
-
-function setStatus(msg) {
-  document.getElementById('status-msg').textContent = msg;
+function showStatus(msg) {
+  document.getElementById('status-section').style.display = 'block';
+  document.getElementById('loading-msg').textContent = msg;
+  document.getElementById('error-box').style.display = 'none';
 }
 
 function showError(msg) {
-  document.getElementById('error-container').innerHTML = '<div class="error-box"><strong>Error:</strong> ' + escHtml(msg) + '</div>';
-  document.getElementById('status-msg').textContent = 'Something went wrong. See error above.';
-  document.getElementById('form-section').style.display = 'block';
-  document.getElementById('status-section').style.display = 'none';
+  document.getElementById('status-section').style.display = 'block';
+  document.getElementById('loading-msg').textContent = '';
+  const eb = document.getElementById('error-box');
+  eb.style.display = 'block';
+  eb.textContent = msg;
 }
 
-function displayResults(text, tip) {
-  document.getElementById('status-section').style.display = 'none';
-  document.getElementById('results-section').style.display = 'block';
-  var shortTip = tip.length > 80 ? tip.substring(0, 80) + '...' : tip;
-  document.getElementById('results-story-title').textContent = shortTip;
+async function generateContent() {
+  const tip = document.getElementById('story-tip').value.trim();
+  if (!tip) { alert('Please enter a story tip.'); return; }
 
-  var formats = [
-    { key: 'FACEBOOK POST', label: 'Facebook Post', tag: 'Social' },
-    { key: 'REEL SCRIPT', label: 'Reel Script', tag: 'Video' },
-    { key: 'INSTAGRAM CAPTION', label: 'Instagram Caption', tag: 'Social' },
-    { key: 'NEWSLETTER BLURB', label: 'Newsletter Blurb', tag: 'Email' },
-    { key: 'WEBSITE ARTICLE', label: 'Website Article', tag: 'Web' }
+  document.getElementById('results-section').style.display = 'none';
+  setStep(2);
+  showStatus('Step 2: Researching your story...');
+
+  const extra = document.getElementById('extra-details').value.trim();
+  const category = document.getElementById('category').value;
+  const tone = document.getElementById('tone').value;
+  const location = document.getElementById('location').value;
+
+  const prompt = `You are a local news content creator for "${location}". Based on the story tip, create all 5 content formats below. Use the tone: ${tone}. Category: ${category}.
+
+STORY TIP:
+${tip}
+
+EXTRA DETAILS:
+${extra || 'None provided'}
+
+Output EXACTLY this structure with --- dividers:
+
+## Facebook Post
+Write a Facebook post (150-200 words) with 3-5 relevant hashtags. Include a call to action.
+
+---
+
+## Reel Script
+Write a short-form video script (45-60 seconds). Include [HOOK], [MAIN CONTENT], [CTA] labels.
+
+---
+
+## Instagram Caption
+Write an Instagram caption (100-150 words) with 8-10 hashtags and relevant emojis.
+
+---
+
+## Newsletter Blurb
+Write a newsletter blurb (3-4 sentences, professional tone) for a community newsletter.
+
+---
+
+## Website Article
+Write a news article with a headline, byline "By McKinney Now Staff", and 4 paragraphs.`;
+
+  setStep(3);
+  showStatus('Step 3: Generating content with AI...');
+
+  try {
+    const res = await fetch('/.netlify/functions/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 2500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+
+    const rawText = data.content[0].text;
+    // Strip markdown code block wrapper if present
+    let text = rawText.replace(/^```[w]*\n?/m, '').replace(/\n?```$/m, '').trim();
+
+    setStep(4);
+    showStatus('');
+    document.getElementById('loading-msg').textContent = '';
+
+    renderResults(text);
+  } catch (err) {
+    showError('Error: ' + err.message);
+  }
+}
+
+function renderResults(text) {
+  const sections = [
+    { key: 'Facebook Post', icon: '📘' },
+    { key: 'Reel Script', icon: '🎬' },
+    { key: 'Instagram Caption', icon: '📸' },
+    { key: 'Newsletter Blurb', icon: '📧' },
+    { key: 'Website Article', icon: '📰' }
   ];
 
-  var container = document.getElementById('results-blocks');
+  const container = document.getElementById('results-container');
   container.innerHTML = '';
 
-  for (var i = 0; i < formats.length; i++) {
-    var fmt = formats[i];
-    var re = new RegExp('##\\s*' + fmt.key + '\\s*\\n([\\s\\S]*?)(?=\\n---\\n|\\n## |$)', 'i');
-    var match = text.match(re);
-    var content = match ? match[1].trim() : 'Content not generated for this section.';
-    var isFirst = (i === 0);
-    var block = document.createElement('div');
-    block.className = isFirst ? 'result-block expanded' : 'result-block';
-    block.setAttribute('data-idx', i);
+  sections.forEach(({ key, icon }) => {
+    const headerRe = new RegExp('##\\s*' + key, 'i');
+    const match = text.match(headerRe);
+    if (!match) return;
 
-    var header = document.createElement('div');
-    header.className = 'result-header';
-    header.innerHTML = '<span>' + escHtml(fmt.label) + '<span class="tag">' + escHtml(fmt.tag) + '</span></span>';
+    const startIdx = match.index + match[0].length;
+    const rest = text.slice(startIdx);
+    const endMatch = rest.match(/\n---\n|\n## /);
+    const content = (endMatch ? rest.slice(0, endMatch.index) : rest).trim();
 
-    var copyBtn = document.createElement('button');
-    copyBtn.className = 'copy-btn';
-    copyBtn.textContent = 'Copy';
-    copyBtn.setAttribute('data-content', content);
-    copyBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      var c = this.getAttribute('data-content');
-      if (navigator.clipboard) {
-        var self = this;
-        navigator.clipboard.writeText(c).then(function() {
-          self.textContent = 'Copied!';
-          setTimeout(function() { self.textContent = 'Copy'; }, 1500);
-        });
-      }
-    });
-
-    header.appendChild(copyBtn);
-
-    header.addEventListener('click', function(e) {
-      if (e.target.classList.contains('copy-btn')) return;
-      var b = this.parentElement;
-      if (b.classList.contains('expanded')) {
-        b.classList.remove('expanded');
-      } else {
-        b.classList.add('expanded');
-      }
-    });
-
-    var contentDiv = document.createElement('div');
-    contentDiv.className = 'result-content';
-    contentDiv.textContent = content;
-
-    block.appendChild(header);
-    block.appendChild(contentDiv);
+    const block = document.createElement('div');
+    block.className = 'result-block expanded';
+    block.innerHTML = `
+      <div class="result-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <span>${icon} ${key}</span>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyContent(this)">Copy</button>
+      </div>
+      <div class="result-content">${content || 'Content not generated for this section.'}</div>
+    `;
     container.appendChild(block);
-  }
+  });
 
-  window.scrollTo({ top: document.getElementById('results-section').offsetTop - 20, behavior: 'smooth' });
+  document.getElementById('results-section').style.display = 'block';
+  document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' });
 }
 
-function escHtml(t) {
-  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function resetForm() {
-  document.getElementById('form-section').style.display = 'block';
-  document.getElementById('status-section').style.display = 'none';
-  document.getElementById('results-section').style.display = 'none';
-  document.getElementById('story-tip').value = '';
-  document.getElementById('extra-details').value = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function copyContent(btn) {
+  const content = btn.closest('.result-block').querySelector('.result-content').textContent;
+  navigator.clipboard.writeText(content).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
 }
 </script>
 </body>
