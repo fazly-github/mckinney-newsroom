@@ -168,6 +168,8 @@ function generateContent() {
     setStep('format');
     setStatus('Formatting results...');
     var text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+    // Strip markdown code block wrapper if present
+    text = text.replace(/^```[\w]*\n?/m, '').replace(/\n?```$/m, '').trim();
     if (!text) throw new Error('No content returned from AI.');
     setTimeout(function() { displayResults(text, tip); }, 400);
   })
