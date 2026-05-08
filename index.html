@@ -15,28 +15,27 @@ header p { font-size: 0.9rem; opacity: 0.8; margin-top: 4px; }
 .card h2 { font-size: 1.1rem; font-weight: 600; color: #1a3a5c; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px solid #e8edf2; }
 label { display: block; font-size: 0.85rem; font-weight: 600; color: #4a5568; margin-bottom: 6px; margin-top: 16px; }
 label:first-of-type { margin-top: 0; }
-textarea, select { width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e0; border-radius: 8px; font-size: 0.95rem; background: #f7fafc; color: #2d3748; transition: border-color 0.2s; font-family: inherit; }
+textarea, select { width: 100%; padding: 10px 14px; border: 1.5px solid #cbd5e0; border-radius: 8px; font-size: 0.95rem; background: #f7fafc; color: #2d3748; font-family: inherit; }
 textarea:focus, select:focus { outline: none; border-color: #1a3a5c; background: white; }
 textarea { resize: vertical; min-height: 90px; }
 .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-.btn { display: inline-flex; align-items: center; gap: 8px; background: #1a3a5c; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 20px; transition: background 0.2s; }
+.btn { display: inline-flex; align-items: center; gap: 8px; background: #1a3a5c; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 20px; }
 .btn:hover { background: #2d5a8e; }
-.btn:disabled { background: #a0aec0; cursor: not-allowed; }
 #status-section { display: none; }
-.steps { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-.step { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; background: #e8edf2; color: #718096; }
+.steps { display: flex; gap: 8px; margin-bottom: 24px; }
+.step { padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; background: #e8edf2; color: #718096; }
 .step.active { background: #1a3a5c; color: white; }
 .step.done { background: #38a169; color: white; }
 .error-box { background: #fff5f5; border: 1.5px solid #fc8181; border-radius: 8px; padding: 14px 18px; color: #c53030; font-size: 0.92rem; margin-bottom: 16px; }
 #results-section { display: none; }
 .result-block { border: 1.5px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
-.result-header { background: #f7fafc; padding: 12px 18px; font-weight: 700; font-size: 0.9rem; color: #1a3a5c; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.result-header { background: #f7fafc; padding: 12px 18px; font-weight: 700; font-size: 0.9rem; color: #1a3a5c; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
 .result-header:hover { background: #edf2f7; }
 .result-content { padding: 16px 18px; font-size: 0.93rem; color: #2d3748; line-height: 1.65; white-space: pre-wrap; display: none; }
-.result-block.open .result-content { display: block; }
+.result-block.expanded .result-content { display: block; }
 .copy-btn { background: none; border: 1.5px solid #cbd5e0; border-radius: 6px; padding: 4px 12px; font-size: 0.78rem; color: #4a5568; cursor: pointer; font-weight: 600; }
 .copy-btn:hover { background: #edf2f7; }
-.tag { display: inline-block; background: #ebf8ff; color: #2b6cb0; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-right: 6px; }
+.tag { display: inline-block; background: #ebf8ff; color: #2b6cb0; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -104,15 +103,16 @@ textarea { resize: vertical; min-height: 90px; }
 
   <div id="results-section">
     <div class="card">
-      <h2>Generated Content - <span id="results-story-title" style="font-weight:400;color:#4a5568;font-size:0.95rem;"></span></h2>
+      <h2>Generated Content</h2>
+      <p id="results-story-title" style="color:#4a5568;font-size:0.9rem;margin-bottom:16px;"></p>
       <div id="results-blocks"></div>
-      <button class="btn" onclick="resetForm()" style="background:#38a169;margin-top:16px;">New Story</button>
+      <button class="btn" onclick="resetForm()" style="background:#38a169;margin-top:8px;">New Story</button>
     </div>
   </div>
 </div>
 
 <script>
-async function generateContent() {
+function generateContent() {
   var tip = document.getElementById('story-tip').value.trim();
   if (!tip) { alert('Please enter a story tip.'); return; }
   var extra = document.getElementById('extra-details').value.trim();
@@ -127,56 +127,73 @@ async function generateContent() {
   setStep('research');
   setStatus('Researching your story tip...');
 
-  var prompt = 'You are a local news journalist for McKinney Now, a digital news outlet covering ' + location + '.\n\nSTORY TIP: ' + tip + '\n' + (extra ? 'EXTRA DETAILS: ' + extra + '\n' : '') + 'CATEGORY: ' + category + '\nTONE: ' + tone + '\n\nGenerate all 5 content formats with these exact headers:\n\n## FACEBOOK POST\nA 2-4 sentence post. Conversational, engaging. 2-3 hashtags.\n\n## REEL SCRIPT\n30-45 second reel script with [HOOK], [MAIN CONTENT], [CTA] sections.\n\n## INSTAGRAM CAPTION\nStrong opening, key details, 5-8 hashtags at end.\n\n## NEWSLETTER BLURB\n3-4 sentences. Professional but friendly. For email newsletter.\n\n## WEBSITE ARTICLE\nFull article with headline, byline (By McKinney Now Staff), 3-4 paragraphs. Journalistic style. Include context about ' + location + '.';
+  var prompt = 'You are a local news journalist for McKinney Now, a digital news outlet covering ' + location + '.\n\n'
+    + 'STORY TIP: ' + tip + '\n'
+    + (extra ? 'EXTRA DETAILS: ' + extra + '\n' : '')
+    + 'CATEGORY: ' + category + '\n'
+    + 'TONE: ' + tone + '\n\n'
+    + 'Generate all 5 content formats with these exact section headers:\n\n'
+    + '## FACEBOOK POST\n'
+    + 'A 2-4 sentence Facebook post. Conversational, engaging, ends with a call to action. 2-3 hashtags.\n\n'
+    + '## REEL SCRIPT\n'
+    + '30-45 second reel script with [HOOK], [MAIN CONTENT], and [CTA] labeled sections.\n\n'
+    + '## INSTAGRAM CAPTION\n'
+    + 'Strong opening line, key details, 5-8 hashtags at end.\n\n'
+    + '## NEWSLETTER BLURB\n'
+    + '3-4 sentences. Professional but friendly. For email newsletter.\n\n'
+    + '## WEBSITE ARTICLE\n'
+    + 'Full article with headline, byline (By McKinney Now Staff), and 3-4 paragraphs. Journalistic inverted pyramid style for ' + location + '.';
 
-  try {
-    setTimeout(function() { setStep('write'); setStatus('AI is writing your content...'); }, 800);
+  setTimeout(function() { setStep('write'); setStatus('AI is writing your content...'); }, 1000);
 
-    var response = await fetch('/api/claude', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-opus-4-5',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+  fetch('/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-opus-4-5',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(response) {
+    return response.json().then(function(data) {
+      if (!response.ok || data.error) {
+        var msg = (data.error && data.error.message) ? data.error.message : (data.error || ('API error ' + response.status));
+        throw new Error(msg);
+      }
+      return data;
     });
-
-    var data = await response.json();
-
-    if (!response.ok || data.error) {
-      throw new Error(data.error && data.error.message ? data.error.message : (data.error || 'API error ' + response.status));
-    }
-
+  })
+  .then(function(data) {
     setStep('format');
     setStatus('Formatting results...');
-
-    var text = data.content && data.content[0] ? data.content[0].text : '';
+    var text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
     if (!text) throw new Error('No content returned from AI.');
-
     setTimeout(function() { displayResults(text, tip); }, 400);
-
-  } catch(err) {
+  })
+  .catch(function(err) {
     showError(err.message);
-  }
+  });
 }
 
 function setStep(step) {
-  var steps = ['research','write','format'];
-  steps.forEach(function(s, i) {
-    var el = document.getElementById('step-' + s);
+  var steps = ['research', 'write', 'format'];
+  for (var i = 0; i < steps.length; i++) {
+    var el = document.getElementById('step-' + steps[i]);
     var cur = steps.indexOf(step);
     if (i < cur) el.className = 'step done';
     else if (i === cur) el.className = 'step active';
     else el.className = 'step';
-  });
+  }
 }
 
-function setStatus(msg) { document.getElementById('status-msg').textContent = msg; }
+function setStatus(msg) {
+  document.getElementById('status-msg').textContent = msg;
+}
 
 function showError(msg) {
-  document.getElementById('error-container').innerHTML = '<div class="error-box"><strong>Error:</strong> ' + msg + '</div>';
-  document.getElementById('status-msg').textContent = 'Something went wrong.';
+  document.getElementById('error-container').innerHTML = '<div class="error-box"><strong>Error:</strong> ' + escHtml(msg) + '</div>';
+  document.getElementById('status-msg').textContent = 'Something went wrong. See error above.';
   document.getElementById('form-section').style.display = 'block';
   document.getElementById('status-section').style.display = 'none';
 }
@@ -184,7 +201,8 @@ function showError(msg) {
 function displayResults(text, tip) {
   document.getElementById('status-section').style.display = 'none';
   document.getElementById('results-section').style.display = 'block';
-  document.getElementById('results-story-title').textContent = tip.substring(0, 60) + (tip.length > 60 ? '...' : '');
+  var shortTip = tip.length > 80 ? tip.substring(0, 80) + '...' : tip;
+  document.getElementById('results-story-title').textContent = shortTip;
 
   var formats = [
     { key: 'FACEBOOK POST', label: 'Facebook Post', tag: 'Social' },
@@ -197,23 +215,63 @@ function displayResults(text, tip) {
   var container = document.getElementById('results-blocks');
   container.innerHTML = '';
 
-  formats.forEach(function(fmt, idx) {
-    var regex = new RegExp('##\s*' + fmt.key + '\s*\n([\s\S]*?)(?=##|$)', 'i');
-    var match = text.match(regex);
-    var content = match ? match[1].trim() : '(Content not generated for this section)';
+  for (var i = 0; i < formats.length; i++) {
+    var fmt = formats[i];
+    var re = new RegExp('##\s*' + fmt.key + '\s*\n([\s\S]*?)(?=##|$)', 'i');
+    var match = text.match(re);
+    var content = match ? match[1].trim() : 'Content not generated for this section.';
+    var isFirst = (i === 0);
     var block = document.createElement('div');
-    block.className = 'result-block' + (idx === 0 ? ' open' : '');
-    block.innerHTML = '<div class="result-header" onclick="this.parentElement.classList.toggle('open')">' +
-      '<span>' + fmt.label + ' <span class="tag">' + fmt.tag + '</span></span>' +
-      '<button class="copy-btn" onclick="event.stopPropagation();navigator.clipboard.writeText(this.closest('.result-block').querySelector('.result-content').textContent).then(function(){var b=event.target;b.textContent='Copied!';setTimeout(function(){b.textContent='Copy';},1500)})">Copy</button>' +
-      '</div><div class="result-content">' + escHtml(content) + '</div>';
+    block.className = isFirst ? 'result-block expanded' : 'result-block';
+    block.setAttribute('data-idx', i);
+
+    var header = document.createElement('div');
+    header.className = 'result-header';
+    header.innerHTML = '<span>' + escHtml(fmt.label) + '<span class="tag">' + escHtml(fmt.tag) + '</span></span>';
+
+    var copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-btn';
+    copyBtn.textContent = 'Copy';
+    copyBtn.setAttribute('data-content', content);
+    copyBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var c = this.getAttribute('data-content');
+      if (navigator.clipboard) {
+        var self = this;
+        navigator.clipboard.writeText(c).then(function() {
+          self.textContent = 'Copied!';
+          setTimeout(function() { self.textContent = 'Copy'; }, 1500);
+        });
+      }
+    });
+
+    header.appendChild(copyBtn);
+
+    header.addEventListener('click', function(e) {
+      if (e.target.classList.contains('copy-btn')) return;
+      var b = this.parentElement;
+      if (b.classList.contains('expanded')) {
+        b.classList.remove('expanded');
+      } else {
+        b.classList.add('expanded');
+      }
+    });
+
+    var contentDiv = document.createElement('div');
+    contentDiv.className = 'result-content';
+    contentDiv.textContent = content;
+
+    block.appendChild(header);
+    block.appendChild(contentDiv);
     container.appendChild(block);
-  });
+  }
 
   window.scrollTo({ top: document.getElementById('results-section').offsetTop - 20, behavior: 'smooth' });
 }
 
-function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escHtml(t) {
+  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 function resetForm() {
   document.getElementById('form-section').style.display = 'block';
