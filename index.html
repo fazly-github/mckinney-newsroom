@@ -219,7 +219,7 @@ function displayResults(text, tip) {
 
   for (var i = 0; i < formats.length; i++) {
     var fmt = formats[i];
-    var re = new RegExp('##\s*' + fmt.key + '\s*\n([\s\S]*?)(?=##|$)', 'i');
+    var re = new RegExp('##\\s*' + fmt.key + '\\s*\\n([\\s\\S]*?)(?=\\n---\\n|\\n## |$)', 'i');
     var match = text.match(re);
     var content = match ? match[1].trim() : 'Content not generated for this section.';
     var isFirst = (i === 0);
